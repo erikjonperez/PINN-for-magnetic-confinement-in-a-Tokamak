@@ -136,6 +136,7 @@ The poloidal coils introduce a non-zero BR component (antisymmetric in Z) and a 
 ---
 
 ## Repository Structure
+```
 PINN-Tokamak-Confinement/
 │
 ├── README.md
@@ -160,7 +161,7 @@ PINN-Tokamak-Confinement/
 ├── 03_pinn_vs_femm.png
 ├── 04_interior_error.png
 └── 05_axial_profile.png
-
+```
 ---
 
 ## Installation
