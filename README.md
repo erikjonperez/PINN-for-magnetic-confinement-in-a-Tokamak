@@ -136,3 +136,241 @@ The poloidal coils introduce a non-zero BR component (antisymmetric in Z) and a 
 ---
 
 ## Repository Structure
+PINN-Tokamak-Confinement/
+│
+├── README.md
+├── math_derivation.md
+├── requirements.txt
+├── LICENSE
+│
+├── pinn_tokamak.py
+├── pyfemm_extraction.py
+├── femm_tokamak.lua
+│
+├── model/
+│   └── tokamak.fem
+│
+├── data/
+│   ├── boundary_data.csv
+│   └── interior_data.csv
+│
+└── results/
+├── 01_loss_curves.png
+├── 02_pinn_fields.png
+├── 03_pinn_vs_femm.png
+├── 04_interior_error.png
+└── 05_axial_profile.png
+
+---
+
+## Installation
+
+```bash
+git clone https://github.com/erikjonperez/PINN-Tokamak-Confinement.git
+cd PINN-Tokamak-Confinement
+pip install -r requirements.txt
+```
+
+FEMM 4.2 is required only if you want to re-run the simulation and extract new data (Windows only). For training with the provided data, only PyTorch + pandas + matplotlib are needed.
+
+---
+
+## Usage
+
+### Train with provided data (recommended)
+
+```bash
+python pinn_tokamak.py
+```
+
+Results are saved to `results/`.
+
+### Full pipeline from FEMM
+
+**Step 1:** Build the FEMM model
+
+**Step 2:** Extract training data
+```bash
+python pyfemm_extraction.py
+```
+
+**Step 3:** Train the PINN
+```bash
+python pinn_tokamak.py
+```
+
+### Cloud GPU (Vast.ai or similar)
+
+```bash
+pip install matplotlib pandas torch
+python pinn_tokamak.py
+```
+
+No additional dependencies beyond PyTorch are required for training.
+
+---
+
+## Mathematical Derivation
+
+See [math_derivation.md](math_derivation.md) for the full step-by-step derivation covering:
+1. Maxwell → vector Poisson equation
+2. Axial symmetry → scalar field Aφ(R,Z)
+3. Vector Laplacian in cylindrical coordinates → PDE for Aφ
+4. Stokes' theorem → flux function ψ = 2πR·Aφ
+5. Change of variables → PDE for ψ
+6. Recovery of B from ψ
+7. Normalization and chain rule for PINN derivatives
+8. Loss function design
+
+---
+
+## License
+
+MIT License. See [LICENSE](LICENSE).
+
+---
+
+## Author
+
+**Erik Jon Pérez Mardaras** — AI Engineer
+
+[LinkedIn](https://linkedin.com/in/erikjonperez) · [GitHub](https://github.com/erikjonperez)
+
+# Mathematical Derivation
+
+Full step-by-step derivation of the governing PDE and the PINN formulation for the mini-Tokamak magnetic confinement problem.
+
+---
+
+## Step 1 — Maxwell's equations
+
+We start from the magnetostatic form of Maxwell's equations (no time variation):
+
+$$\nabla \times \mathbf{H} = \mathbf{J}$$
+$$\nabla \cdot \mathbf{B} = 0$$
+
+With the constitutive relation B = μ₀H in vacuum, Ampère's law becomes ∇×B = μ₀J.
+
+---
+
+## Step 2 — Vector potential A
+
+Since ∇·B = 0, there exists a vector field A such that B = ∇×A. Applying the Coulomb gauge (∇·A = 0):
+
+$$\boxed{-\nabla^2 \mathbf{A} = \mu_0 \mathbf{J}}$$
+
+In the vacuum (J = 0): ∇²A = 0.
+
+---
+
+## Step 3 — Axial symmetry
+
+The Tokamak has revolution symmetry around Z (∂/∂φ = 0). All currents flow azimuthally: J = Jφ(R,Z) ê_φ. Therefore A also has only the azimuthal component:
+
+$$\mathbf{A} = A_\varphi(R,Z)\,\hat{e}_\varphi$$
+
+The 3D problem reduces to finding the scalar field Aφ(R,Z) in the 2D meridional plane.
+
+---
+
+## Step 4 — PDE for Aφ in cylindrical coordinates
+
+The vector Laplacian for the φ-component is not the same as the scalar Laplacian applied to Aφ. The unit vector ê_φ rotates as you move in R, generating an extra term:
+
+$$(\nabla^2 \mathbf{A})_\varphi = \frac{\partial^2 A_\varphi}{\partial R^2} + \frac{1}{R}\frac{\partial A_\varphi}{\partial R} + \frac{\partial^2 A_\varphi}{\partial Z^2} - \frac{A_\varphi}{R^2}$$
+
+Setting this to zero in the vacuum:
+
+$$\boxed{\frac{\partial^2 A_\varphi}{\partial R^2} + \frac{1}{R}\frac{\partial A_\varphi}{\partial R} + \frac{\partial^2 A_\varphi}{\partial Z^2} - \frac{A_\varphi}{R^2} = 0}$$
+
+---
+
+## Step 5 — Stokes' theorem: flux function ψ
+
+By Stokes' theorem, the magnetic flux through a disk of radius R is:
+
+$$\Phi = \iint_S \mathbf{B} \cdot d\mathbf{S} = \oint_C \mathbf{A} \cdot d\mathbf{l} = A_\varphi \cdot 2\pi R$$
+
+We define the magnetic flux function (stream function):
+
+$$\psi(R,Z) = 2\pi R \cdot A_\varphi(R,Z)$$
+
+Its level curves coincide with the magnetic field lines in the R-Z plane.
+
+> **FEMM convention:** FEMM in axisymmetric mode returns ψ = 2πR·Aφ (verified numerically: A_femm/(2πR) ≈ 0.0195 with <1% variation across the domain).
+
+---
+
+## Step 6 — PDE for ψ
+
+Substituting Aφ = ψ/(2πR) into the Aφ PDE and simplifying:
+
+$$\frac{\partial A_\varphi}{\partial R} = \frac{1}{2\pi}\frac{R\,\partial\psi/\partial R - \psi}{R^2}$$
+
+$$\frac{\partial^2 A_\varphi}{\partial R^2} = \frac{1}{2\pi}\left[\frac{\partial^2\psi/\partial R^2}{R} - \frac{2\,\partial\psi/\partial R}{R^2} + \frac{2\psi}{R^3}\right]$$
+
+After substitution and cancellation of terms, dividing by 1/(2πR):
+
+$$\boxed{\frac{\partial^2 \psi}{\partial R^2} - \frac{1}{R}\frac{\partial \psi}{\partial R} + \frac{\partial^2 \psi}{\partial Z^2} = 0}$$
+
+**Critical difference from the Aφ PDE:** the sign of the (1/R) term is **minus** (not plus), and the ψ/R² term vanishes. This is the PDE the PINN enforces.
+
+---
+
+## Step 7 — Recovering B from ψ
+
+From B = ∇×A with A = [ψ/(2πR)] ê_φ:
+
+$$\boxed{B_R = -\frac{1}{2\pi R}\frac{\partial \psi}{\partial Z}}$$
+
+$$\boxed{B_Z = \frac{1}{2\pi R}\frac{\partial \psi}{\partial R}}$$
+
+These are computed exactly via PyTorch autograd — no discretization.
+
+---
+
+## Step 8 — Normalization and chain rule
+
+The PINN uses normalized coordinates:
+
+$$R_n = \frac{2(R - R_{\min})}{R_{\max} - R_{\min}} - 1, \quad Z_n = \frac{2(Z + a)}{2a} - 1, \quad \psi_n = \frac{\psi - \psi_{\min}}{\psi_{\max} - \psi_{\min}}$$
+
+Scale factors: $s_R = 2/(R_{\max}-R_{\min})$, $s_Z = 2/(2a)$, $s_\psi = \psi_{\max}-\psi_{\min}$.
+
+Chain rule to recover real derivatives from normalized ones:
+
+$$\frac{\partial \psi}{\partial R} = s_\psi \cdot s_R \cdot \frac{\partial \psi_n}{\partial R_n}, \qquad \frac{\partial^2 \psi}{\partial R^2} = s_\psi \cdot s_R^2 \cdot \frac{\partial^2 \psi_n}{\partial R_n^2}$$
+
+---
+
+## Step 9 — PINN loss function
+
+$$\mathcal{L} = \lambda_{\text{pde}} \cdot \mathcal{L}_{\text{pde}} + \lambda_{\text{bc}} \cdot \mathcal{L}_{\text{bc}} + \lambda_{\text{data}} \cdot \mathcal{L}_{\text{data}}$$
+
+**Physics loss** — PDE residual at random interior points:
+
+$$\mathcal{L}_{\text{pde}} = \frac{1}{N}\sum_i \left(\frac{\partial^2 \psi}{\partial R^2} - \frac{1}{R_i}\frac{\partial \psi}{\partial R} + \frac{\partial^2 \psi}{\partial Z^2}\right)^2_{(R_i,Z_i)}$$
+
+**Boundary loss** — matches FEMM values on the chamber boundary:
+
+$$\mathcal{L}_{\text{bc}} = \frac{1}{N}\sum_j \left(\psi_\theta(R_j,Z_j) - \psi_{\text{FEMM}}(R_j,Z_j)\right)^2$$
+
+**Data loss** — matches FEMM values inside the chamber:
+
+$$\mathcal{L}_{\text{data}} = \frac{1}{N}\sum_k \left(\psi_\theta(R_k,Z_k) - \psi_{\text{FEMM}}(R_k,Z_k)\right)^2$$
+
+Weights: λ_pde = 10, λ_bc = 5, λ_data = 20.
+
+---
+
+## Summary
+
+| Quantity | Expression |
+|---|---|
+| Governing PDE | ∂²ψ/∂R² − (1/R)·∂ψ/∂R + ∂²ψ/∂Z² = 0 |
+| Flux function | ψ = 2πR·Aφ |
+| Radial field | BR = −(1/2πR)·∂ψ/∂Z |
+| Vertical field | BZ = (1/2πR)·∂ψ/∂R |
+| PINN objective | ψ_θ(R,Z) ≈ ψ(R,Z) |
+| Training loss | L = 10·L_pde + 5·L_bc + 20·L_data |
+
