@@ -60,9 +60,8 @@ Once the PINN has learned ψ(R,Z), the magnetic field components are recovered a
 
 $$B_R = -\frac{1}{2\pi R}\frac{\partial \psi}{\partial Z}, \qquad B_Z = \frac{1}{2\pi R}\frac{\partial \psi}{\partial R}$$
 
-For the full derivation from Maxwell's equations to the PDE, see [math_derivation.md](math_derivation.md).
 
-> **Note on FEMM convention:** FEMM in axisymmetric mode returns the flux function ψ = 2πR·Aφ, not the vector potential Aφ directly. The PDE for ψ has a **minus** sign in the (1/R) term — opposite to the Aφ equation. Confusing these two leads to a ~5× error in Bz.
+> **Important Note!:** FEMM simulator returns the flux function ψ, = 2πR·Aφ, not the vector potential Aφ directly, even though the extracted .csv data shows “A_phi”
 
 ---
 
@@ -235,7 +234,7 @@ MIT License. See [LICENSE](LICENSE).
 
 **Erik Jon Pérez Mardaras** — AI Engineer
 
-[LinkedIn]([https://linkedin.com/in/erikjonperez](https://www.linkedin.com/in/erikjon-perez-mardaras/)) · [GitHub](https://github.com/erikjonperez)
+[LinkedIn](https://www.linkedin.com/in/erikjon-perez-mardaras/) · [GitHub](https://github.com/erikjonperez)
 
 # Mathematical Derivation
 
