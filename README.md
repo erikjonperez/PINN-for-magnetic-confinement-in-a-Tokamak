@@ -140,7 +140,6 @@ The poloidal coils introduce a non-zero BR component (antisymmetric in Z) and a 
 PINN-Tokamak-Confinement/
 │
 ├── README.md
-├── math_derivation.md
 ├── requirements.txt
 ├── LICENSE
 │
@@ -161,6 +160,7 @@ PINN-Tokamak-Confinement/
 ├── 03_pinn_vs_femm.png
 ├── 04_interior_error.png
 └── 05_axial_profile.png
+└── 06_femm_vs_pinn.png
 ```
 ---
 
@@ -213,7 +213,7 @@ No additional dependencies beyond PyTorch are required for training.
 
 ## Mathematical Derivation
 
-See [math_derivation.md](math_derivation.md) for the full step-by-step derivation covering:
+Step-by-step derivation covering:
 1. Maxwell → vector Poisson equation
 2. Axial symmetry → scalar field Aφ(R,Z)
 3. Vector Laplacian in cylindrical coordinates → PDE for Aφ
@@ -235,7 +235,7 @@ MIT License. See [LICENSE](LICENSE).
 
 **Erik Jon Pérez Mardaras** — AI Engineer
 
-[LinkedIn](https://linkedin.com/in/erikjonperez) · [GitHub](https://github.com/erikjonperez)
+[LinkedIn]([https://linkedin.com/in/erikjonperez](https://www.linkedin.com/in/erikjon-perez-mardaras/)) · [GitHub](https://github.com/erikjonperez)
 
 # Mathematical Derivation
 
@@ -298,7 +298,7 @@ $$\psi(R,Z) = 2\pi R \cdot A_\varphi(R,Z)$$
 
 Its level curves coincide with the magnetic field lines in the R-Z plane.
 
-> **FEMM convention:** FEMM in axisymmetric mode returns ψ = 2πR·Aφ (verified numerically: A_femm/(2πR) ≈ 0.0195 with <1% variation across the domain).
+> **Important Note!:** FEMM simulator returns ψ, not Aφ, even though the extracted .csv data shows “A_phi”
 
 ---
 
