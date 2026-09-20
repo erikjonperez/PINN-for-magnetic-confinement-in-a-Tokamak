@@ -26,6 +26,7 @@ The network achieves **<0.04% boundary error** and **0.033% interior error** rel
 - [Repository Structure](#repository-structure)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Current limitations and future research directions](#Current-limitations-and-future-research-directions)
 - [Mathematical Derivation](#mathematical-derivation)
 
 ---
@@ -235,6 +236,10 @@ MIT License. See [LICENSE](LICENSE).
 **Erik Jon Pérez Mardaras** — AI Engineer
 
 [LinkedIn](https://www.linkedin.com/in/erikjon-perez-mardaras/) · [GitHub](https://github.com/erikjonperez)
+
+# Current limitations and future research directions
+
+The network has been trained for a specific geometry and fixed coil configuration of the tokamak. Therefore, it is a surrogate model of this configuration rather than a general-purpose equilibrium solver for tokamaks. Furthermore, it does not account for the presence of gas in the vacuum chamber or the properties of the confinement itself, but rather focuses on the surrogate modeling of the magnetic fields inside the chamber. These aspects are planned to be addressed in future work.
 
 # Mathematical Derivation
 
